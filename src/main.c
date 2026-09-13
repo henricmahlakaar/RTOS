@@ -3,6 +3,9 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 
+//Tässä 1p suoritus, jatkekaan mahdollisesti 3p suoritukseen. 
+//Tekijä: Henric M. ja Jere K.
+
 // Led pin configurations
 static const struct gpio_dt_spec red = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
 static const struct gpio_dt_spec blue = GPIO_DT_SPEC_GET(DT_ALIAS(led2), gpios);
