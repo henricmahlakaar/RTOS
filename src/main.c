@@ -3,6 +3,7 @@
 #include <zephyr/device.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
+#include <zephyr/timing/timing.h>
 
 // Tässä 1p suoritus 2vk tehtävästä, lisätään ominaisuuksia mahdollisuuksien mukaan.
 // Tekijä: Henric M. ja Jere K.
@@ -11,6 +12,8 @@
 #define STACKSIZE 500
 #define PRIORITY 5
 #define UART_DEVICE_NODE DT_CHOSEN(zephyr_shell_uart)
+#define DEBUG
+
 
 // Ledit
 static const struct gpio_dt_spec red   = GPIO_DT_SPEC_GET(DT_ALIAS(led0), gpios);
@@ -39,6 +42,8 @@ K_SEM_DEFINE(done_sem, 0,1);
 
 // FIFO-puskuri vastaanotetulle sekvenssille
 K_FIFO_DEFINE(data_fifo);
+
+static uint64_t sequence_total = 0;
 
 // FIFO:n datatyyppi
 struct data_t {
@@ -78,6 +83,14 @@ int init_led(void)
 	return 0;
 }
 
+void add_sequence_time(uint64_t task_ns) {
+	sequence_total += task_ns;
+}
+
+void print_sequence_time(void) {
+	printk("Total sequence time: %lld.%03lld ms\n", sequence_total / 1000000, sequence_total % 1000000 / 1000);
+	sequence_total = 0;
+}
 // UART task - lukee sekvenssin sarjaportista FIFO-puskuriin
 static void uart_task(void *, void *, void *)
 {
@@ -123,6 +136,9 @@ static void dispatcher_task(void *, void *, void *)
 			}
 			k_free(data);
 			k_sem_take(&done_sem, K_FOREVER); // Wait for the led task to signal completion
+			if (k_fifo_is_empty(&data_fifo)) {
+				print_sequence_time();
+			}
 		}
 	}
 }
@@ -133,6 +149,8 @@ void red_led_task(void *, void *, void *)
 	printk("Red led thread started\n");
 	while (true) {
 		k_sem_take(&red_sem, K_FOREVER);
+		timing_start();
+		timing_t red_start_time = timing_counter_get();
 		gpio_pin_set_dt(&red, 1);
 		printk("Red on\n");
 		k_sleep(K_SECONDS(1));
@@ -140,6 +158,13 @@ void red_led_task(void *, void *, void *)
 		gpio_pin_set_dt(&red, 0);
 		printk("Red off\n");
 		k_sem_give(&done_sem); // Signal that red led task is done
+
+		timing_t red_end_time = timing_counter_get();
+		timing_stop();
+		uint64_t timing_ns = timing_cycles_to_ns(timing_cycles_get(&red_start_time, &red_end_time));
+		printk("Red led task time: %lld.%03lld ms\n", timing_ns / 1000000, timing_ns % 1000000 / 1000);
+		add_sequence_time(timing_ns);
+
 	}
 }
 
@@ -148,6 +173,8 @@ void yellow_led_task(void *, void *, void *)
 	printk("Yellow led thread started\n");
 	while (true) {
 		k_sem_take(&yellow_sem, K_FOREVER);
+		timing_start();
+		timing_t yellow_start_time = timing_counter_get();
 		gpio_pin_set_dt(&red, 1);
 		gpio_pin_set_dt(&green, 1);
 		printk("Yellow on\n");
@@ -157,6 +184,12 @@ void yellow_led_task(void *, void *, void *)
 		gpio_pin_set_dt(&green, 0);
 		printk("Yellow off\n");
 		k_sem_give(&done_sem); // Signal that yellow led task is done
+
+		timing_t yellow_end_time = timing_counter_get();
+		timing_stop();
+		uint64_t timing_ns = timing_cycles_to_ns(timing_cycles_get(&yellow_start_time, &yellow_end_time));
+		printk("Yellow led task time: %lld.%03lld ms\n", timing_ns / 1000000, timing_ns % 1000000 / 1000);
+		add_sequence_time(timing_ns);
 	}
 }
 
@@ -165,6 +198,8 @@ void green_led_task(void *, void *, void *)
 	printk("Green led thread started\n");
 	while (true) {
 		k_sem_take(&green_sem, K_FOREVER);
+		timing_start();
+		timing_t green_start_time = timing_counter_get();
 		gpio_pin_set_dt(&green, 1);
 		printk("Green on\n");
 		k_sleep(K_SECONDS(1));
@@ -172,11 +207,22 @@ void green_led_task(void *, void *, void *)
 		gpio_pin_set_dt(&green, 0);
 		printk("Green off\n");
 		k_sem_give(&done_sem); // Signal that green led task is done
+		timing_t green_end_time = timing_counter_get();
+		timing_stop();
+		uint64_t timing_ns = timing_cycles_to_ns(timing_cycles_get(&green_start_time, &green_end_time));
+		printk("Green led task time: %lld.%03lld ms\n", timing_ns / 1000000, timing_ns % 1000000 / 1000);
+		add_sequence_time(timing_ns);
 	}
 }
 
+
+
 int main(void)
 {
+	timing_init();
+	timing_start();
+	timing_t start_time = timing_counter_get();
+
 	init_led();
 
 	if (init_uart() != 0) {
@@ -184,5 +230,9 @@ int main(void)
 		return 1;
 	}
 
+	timing_t end_time = timing_counter_get();
+	timing_stop();
+	uint64_t timing_ns = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time));
+	printk("Initialization time: %lld.%03lld ms\n", timing_ns / 1000000, timing_ns % 1000000 / 1000);
 	return 0;
 }
