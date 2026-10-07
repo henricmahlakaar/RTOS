@@ -4,15 +4,23 @@
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/uart.h>
 #include <zephyr/timing/timing.h>
+#include <stdlib.h>
+#include <string.h>
 
-// Tässä 1p suoritus 2vk tehtävästä, lisätään ominaisuuksia mahdollisuuksien mukaan.
+// Tässä 1p suoritus 5vk tehtävästä, lisätään ominaisuuksia mahdollisuuksien mukaan.
 // Tekijä: Henric M. ja Jere K.
 
 // Defines
 #define STACKSIZE 500
 #define PRIORITY 5
 #define UART_DEVICE_NODE DT_CHOSEN(zephyr_shell_uart)
-#define DEBUG
+//#define DEBUG
+#define LINE_BUF_SIZE 32
+#define ALARM_LED_ON_MS 500
+
+#define TIME_LEN_ERROR -1
+#define TIME_ARRAY_ERROR -2
+#define TIME_VALUE_ERROR -3
 
 
 // Ledit
@@ -27,6 +35,8 @@ void yellow_led_task(void *, void *, void *);
 void green_led_task(void *, void *, void *);
 static void uart_task(void *, void *, void *);
 static void dispatcher_task(void *, void *, void *);
+static void alarm_off_handler(struct k_timer *timer);
+static void alarm_handler(struct k_timer *timer);
 
 // Threadit
 K_THREAD_DEFINE(red_thread, STACKSIZE, red_led_task,    NULL, NULL, NULL, PRIORITY, 0, 0);
@@ -34,6 +44,8 @@ K_THREAD_DEFINE(yellow_thread, STACKSIZE, yellow_led_task, NULL, NULL, NULL, PRI
 K_THREAD_DEFINE(green_thread, STACKSIZE, green_led_task,  NULL, NULL, NULL, PRIORITY, 0, 0);
 K_THREAD_DEFINE(uart_thread, STACKSIZE, uart_task,       NULL, NULL, NULL, PRIORITY, 0, 0);
 K_THREAD_DEFINE(dispatcher_thread, STACKSIZE, dispatcher_task, NULL, NULL, NULL, PRIORITY, 0, 0);
+K_TIMER_DEFINE(alarm_off_timer, alarm_off_handler, NULL);
+K_TIMER_DEFINE(alarm_timer, alarm_handler, NULL);
 
 K_SEM_DEFINE(red_sem, 0,1);
 K_SEM_DEFINE(yellow_sem, 0,1);
@@ -44,6 +56,55 @@ K_SEM_DEFINE(done_sem, 0,1);
 K_FIFO_DEFINE(data_fifo);
 
 static uint64_t sequence_total = 0;
+
+// Aika sekvenssin käsittelyyn
+int time_parse(char *time) {
+ 
+	// how many seconds, default returns error
+	int seconds = TIME_LEN_ERROR;
+ 
+	// Check that string is not null
+	if (time == NULL) {
+		return TIME_ARRAY_ERROR;
+	}
+	// Tarkistaa että merkkijonon pituus on 6 merkkiä (hhmmss)
+	if (strlen(time) != 6) {
+		return TIME_LEN_ERROR;
+	}
+ 
+	// Parse values from time string
+	// For example: 124033 -> 12hour 40min 33sec
+	int values[3];
+	values[2] = atoi(time+4); // seconds
+	time[4] = 0;
+	values[1] = atoi(time+2); // minutes
+	time[2] = 0;
+	values[0] = atoi(time); // hours
+ 
+	// Boundary check: below zero or above limit not allowed
+	if (values[0] < 0 || values[0] > 23 ||
+		values[1] < 0 || values[1] > 59 ||
+		values[2] < 0 || values[2] > 59) {
+		return TIME_VALUE_ERROR;
+	}
+ 
+	seconds = values[0] * 3600 + values[1] * 60 + values[2];
+ 
+	return seconds;
+}
+
+static void alarm_off_handler(struct k_timer *timer)
+{
+	gpio_pin_set_dt(&red, 0);
+}
+
+static void alarm_handler(struct k_timer *timer)
+{
+	printk("Timer interrupt: red on\n");
+	gpio_pin_set_dt(&red, 1);
+	k_timer_start(&alarm_off_timer, K_MSEC(ALARM_LED_ON_MS), K_NO_WAIT);
+}
+
 
 // FIFO:n datatyyppi
 struct data_t {
@@ -63,7 +124,7 @@ int init_uart(void)
 
 int init_led(void)
 {
-	// Led pin initialization
+	
 	int ret = gpio_pin_configure_dt(&red, GPIO_OUTPUT_ACTIVE);
 	ret |= gpio_pin_configure_dt(&blue, GPIO_OUTPUT_ACTIVE);
 	ret |= gpio_pin_configure_dt(&green, GPIO_OUTPUT_ACTIVE);
@@ -73,7 +134,7 @@ int init_led(void)
 		return ret;
 	}
 
-	// set leds off
+	
 	gpio_pin_set_dt(&red, 0);
 	gpio_pin_set_dt(&blue, 0);
 	gpio_pin_set_dt(&green, 0);
@@ -91,23 +152,59 @@ void print_sequence_time(void) {
 	printk("Total sequence time: %lld.%03lld ms\n", sequence_total / 1000000, sequence_total % 1000000 / 1000);
 	sequence_total = 0;
 }
-// UART task - lukee sekvenssin sarjaportista FIFO-puskuriin
-static void uart_task(void *, void *, void *)
+// Käsittelee yhden Enterillä päätetyn rivin
+static void handle_line(char *line)
 {
-	char c = 0;
-
-	printk("Uart thread started\n");
-	while (true) {
-		if (uart_poll_in(uart_dev, &c) == 0) {
+	if ((line[0] >= '0' && line[0] <= '9') || line[0] == '-') {
+		// Aikamerkkijono -> parseri -> ajastin
+		printk("Time string received: %s\n", line);
+		int sec = time_parse(line);
+		if (sec >= 0) {
+			k_timer_start(&alarm_timer, K_SECONDS(sec), K_NO_WAIT);
+			printk("Timer started: interrupt in %d s\n", sec);
+		} else {
+			printk("Time parse error: %d\n", sec);
+		}
+	} else {
+		// Liikennevalosekvenssi
+		for (int i = 0; line[i] != '\0'; i++) {
+			char c = line[i];
 			if (c == 'R' || c == 'Y' || c == 'G') {
 				struct data_t *data = k_malloc(sizeof(struct data_t));
 				if (data == NULL) {
 					printk("Malloc failed\n");
-					continue;
+					return;
 				}
 				data->color = c;
 				k_fifo_put(&data_fifo, data);
 				printk("Data sent to fifo: %c\n", c);
+			} else {
+				printk("Unknown char: %c\n", c);
+			}
+		}
+	}
+}
+
+// UART taski
+static void uart_task(void *, void *, void *)
+{
+	char c = 0;
+	char line[LINE_BUF_SIZE];
+	int len = 0;
+
+	printk("Uart thread started\n");
+	while (true) {
+		if (uart_poll_in(uart_dev, &c) == 0) {
+			if (c == '\r' || c == '\n') {
+				if (len > 0) {
+					line[len] = '\0';
+					printk("\n");
+					handle_line(line);
+					len = 0;
+				}
+			} else if (len < LINE_BUF_SIZE - 1) {
+				line[len++] = c;
+				uart_poll_out(uart_dev, c);
 			}
 		}
 		k_msleep(10);
@@ -135,7 +232,7 @@ static void dispatcher_task(void *, void *, void *)
 					break;
 			}
 			k_free(data);
-			k_sem_take(&done_sem, K_FOREVER); // Wait for the led task to signal completion
+			k_sem_take(&done_sem, K_FOREVER); 
 			if (k_fifo_is_empty(&data_fifo)) {
 				print_sequence_time();
 			}
@@ -157,7 +254,7 @@ void red_led_task(void *, void *, void *)
 
 		gpio_pin_set_dt(&red, 0);
 		printk("Red off\n");
-		k_sem_give(&done_sem); // Signal that red led task is done
+		k_sem_give(&done_sem); 
 
 		timing_t red_end_time = timing_counter_get();
 		timing_stop();
@@ -183,7 +280,7 @@ void yellow_led_task(void *, void *, void *)
 		gpio_pin_set_dt(&red, 0);
 		gpio_pin_set_dt(&green, 0);
 		printk("Yellow off\n");
-		k_sem_give(&done_sem); // Signal that yellow led task is done
+		k_sem_give(&done_sem); 
 
 		timing_t yellow_end_time = timing_counter_get();
 		timing_stop();
@@ -206,7 +303,7 @@ void green_led_task(void *, void *, void *)
 
 		gpio_pin_set_dt(&green, 0);
 		printk("Green off\n");
-		k_sem_give(&done_sem); // Signal that green led task is done
+		k_sem_give(&done_sem); 
 		timing_t green_end_time = timing_counter_get();
 		timing_stop();
 		uint64_t timing_ns = timing_cycles_to_ns(timing_cycles_get(&green_start_time, &green_end_time));
