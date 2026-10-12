@@ -1,66 +1,166 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<robot generator="Robot 7.5 (Python 3.12.4 on win32)" generated="2026-10-12T13:55:25.203490" rpa="false" schemaversion="5">
+<robot generator="Robot 7.5 (Python 3.12.4 on win32)" generated="2026-10-12T14:14:58.533087" rpa="false" schemaversion="5">
 <suite id="s1" name="TimeParser" source="C:\RTOS-Git\RTOS-vk5\RTOS\src\Robot\TimeParser.robot">
 <test id="s1-t1" name="Correct Time" line="5">
 <kw name="Open Port" owner="SerialLibrary">
 <arg>COM6</arg>
-<status status="PASS" start="2026-10-12T13:55:25.468966" elapsed="0.013943"/>
+<status status="PASS" start="2026-10-12T14:14:58.801918" elapsed="0.013244"/>
 </kw>
 <kw name="Send Text" owner="SerialLibrary">
 <arg>000120</arg>
-<status status="PASS" start="2026-10-12T13:55:25.482909" elapsed="0.000000"/>
+<status status="PASS" start="2026-10-12T14:14:58.816175" elapsed="0.000000"/>
 </kw>
 <kw name="Read Line" owner="SerialLibrary">
-<msg time="2026-10-12T13:55:25.557769" level="INFO">${result} = 80</msg>
+<msg time="2026-10-12T14:14:58.895390" level="INFO">${result} = 80</msg>
 <var>${result}</var>
-<status status="PASS" start="2026-10-12T13:55:25.483909" elapsed="0.073860"/>
+<status status="PASS" start="2026-10-12T14:14:58.817174" elapsed="0.078216"/>
 </kw>
 <kw name="Should Be Equal" owner="BuiltIn">
 <arg>${result}</arg>
 <arg>80</arg>
 <doc>Fails if the given objects are unequal.</doc>
-<status status="PASS" start="2026-10-12T13:55:25.558775" elapsed="0.000000"/>
+<status status="PASS" start="2026-10-12T14:14:58.895390" elapsed="0.000980"/>
 </kw>
 <kw name="Close Port" owner="SerialLibrary">
-<status status="PASS" start="2026-10-12T13:55:25.558775" elapsed="0.001002"/>
+<status status="PASS" start="2026-10-12T14:14:58.896370" elapsed="0.001023"/>
 </kw>
-<status status="PASS" start="2026-10-12T13:55:25.467956" elapsed="0.091821"/>
+<status status="PASS" start="2026-10-12T14:14:58.800920" elapsed="0.096473"/>
 </test>
 <test id="s1-t2" name="Invalid Seconds" line="12">
 <kw name="Open Port" owner="SerialLibrary">
 <arg>COM6</arg>
-<status status="PASS" start="2026-10-12T13:55:25.560779" elapsed="0.014062"/>
+<status status="PASS" start="2026-10-12T14:14:58.898362" elapsed="0.013845"/>
 </kw>
 <kw name="Send Text" owner="SerialLibrary">
 <arg>000060</arg>
-<status status="PASS" start="2026-10-12T13:55:25.575849" elapsed="0.000000"/>
+<status status="PASS" start="2026-10-12T14:14:58.912207" elapsed="0.001003"/>
 </kw>
 <kw name="Read Line" owner="SerialLibrary">
-<msg time="2026-10-12T13:55:25.645382" level="INFO">${result} = -3</msg>
+<msg time="2026-10-12T14:14:58.988770" level="INFO">${result} = -3</msg>
 <var>${result}</var>
-<status status="PASS" start="2026-10-12T13:55:25.575849" elapsed="0.069533"/>
+<status status="PASS" start="2026-10-12T14:14:58.913210" elapsed="0.075560"/>
 </kw>
 <kw name="Should Be Equal" owner="BuiltIn">
 <arg>${result}</arg>
 <arg>-3</arg>
 <doc>Fails if the given objects are unequal.</doc>
-<status status="PASS" start="2026-10-12T13:55:25.645382" elapsed="0.001000"/>
+<status status="PASS" start="2026-10-12T14:14:58.988770" elapsed="0.001003"/>
 </kw>
 <kw name="Close Port" owner="SerialLibrary">
-<status status="PASS" start="2026-10-12T13:55:25.646382" elapsed="0.000000"/>
+<status status="PASS" start="2026-10-12T14:14:58.989773" elapsed="0.000996"/>
 </kw>
-<status status="PASS" start="2026-10-12T13:55:25.560779" elapsed="0.086604"/>
+<status status="PASS" start="2026-10-12T14:14:58.898362" elapsed="0.092407"/>
 </test>
-<status status="PASS" start="2026-10-12T13:55:25.204486" elapsed="0.442897"/>
+<test id="s1-t3" name="Wrong Length" line="19">
+<kw name="Open Port" owner="SerialLibrary">
+<arg>COM6</arg>
+<status status="PASS" start="2026-10-12T14:14:58.991774" elapsed="0.013013"/>
+</kw>
+<kw name="Send Text" owner="SerialLibrary">
+<arg>12345</arg>
+<status status="PASS" start="2026-10-12T14:14:59.006783" elapsed="0.000993"/>
+</kw>
+<kw name="Read Line" owner="SerialLibrary">
+<msg time="2026-10-12T14:14:59.065259" level="INFO">${result} = -1</msg>
+<var>${result}</var>
+<status status="PASS" start="2026-10-12T14:14:59.007776" elapsed="0.057483"/>
+</kw>
+<kw name="Should Be Equal" owner="BuiltIn">
+<arg>${result}</arg>
+<arg>-1</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<status status="PASS" start="2026-10-12T14:14:59.066262" elapsed="0.000000"/>
+</kw>
+<kw name="Close Port" owner="SerialLibrary">
+<status status="PASS" start="2026-10-12T14:14:59.067260" elapsed="0.000000"/>
+</kw>
+<status status="PASS" start="2026-10-12T14:14:58.990769" elapsed="0.076491"/>
+</test>
+<test id="s1-t4" name="Invalid Hour" line="26">
+<kw name="Open Port" owner="SerialLibrary">
+<arg>COM6</arg>
+<status status="PASS" start="2026-10-12T14:14:59.068261" elapsed="0.013020"/>
+</kw>
+<kw name="Send Text" owner="SerialLibrary">
+<arg>250000</arg>
+<status status="PASS" start="2026-10-12T14:14:59.081281" elapsed="0.000989"/>
+</kw>
+<kw name="Read Line" owner="SerialLibrary">
+<msg time="2026-10-12T14:14:59.156621" level="INFO">${result} = -3</msg>
+<var>${result}</var>
+<status status="PASS" start="2026-10-12T14:14:59.082270" elapsed="0.074351"/>
+</kw>
+<kw name="Should Be Equal" owner="BuiltIn">
+<arg>${result}</arg>
+<arg>-3</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<status status="PASS" start="2026-10-12T14:14:59.156621" elapsed="0.000981"/>
+</kw>
+<kw name="Close Port" owner="SerialLibrary">
+<status status="PASS" start="2026-10-12T14:14:59.157602" elapsed="0.000997"/>
+</kw>
+<status status="PASS" start="2026-10-12T14:14:59.067260" elapsed="0.091339"/>
+</test>
+<test id="s1-t5" name="Invalid Minute" line="33">
+<kw name="Open Port" owner="SerialLibrary">
+<arg>COM6</arg>
+<status status="PASS" start="2026-10-12T14:14:59.159592" elapsed="0.013291"/>
+</kw>
+<kw name="Send Text" owner="SerialLibrary">
+<arg>006001</arg>
+<status status="PASS" start="2026-10-12T14:14:59.172883" elapsed="0.001004"/>
+</kw>
+<kw name="Read Line" owner="SerialLibrary">
+<msg time="2026-10-12T14:14:59.240636" level="INFO">${result} = -3</msg>
+<var>${result}</var>
+<status status="PASS" start="2026-10-12T14:14:59.174886" elapsed="0.065750"/>
+</kw>
+<kw name="Should Be Equal" owner="BuiltIn">
+<arg>${result}</arg>
+<arg>-3</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<status status="PASS" start="2026-10-12T14:14:59.240636" elapsed="0.001003"/>
+</kw>
+<kw name="Close Port" owner="SerialLibrary">
+<status status="PASS" start="2026-10-12T14:14:59.242636" elapsed="0.000000"/>
+</kw>
+<status status="PASS" start="2026-10-12T14:14:59.158599" elapsed="0.084037"/>
+</test>
+<test id="s1-t6" name="Maximum Time" line="40">
+<kw name="Open Port" owner="SerialLibrary">
+<arg>COM6</arg>
+<status status="PASS" start="2026-10-12T14:14:59.243637" elapsed="0.012998"/>
+</kw>
+<kw name="Send Text" owner="SerialLibrary">
+<arg>235959</arg>
+<status status="PASS" start="2026-10-12T14:14:59.257639" elapsed="0.000999"/>
+</kw>
+<kw name="Read Line" owner="SerialLibrary">
+<msg time="2026-10-12T14:14:59.328702" level="INFO">${result} = 86399</msg>
+<var>${result}</var>
+<status status="PASS" start="2026-10-12T14:14:59.258638" elapsed="0.070064"/>
+</kw>
+<kw name="Should Be Equal" owner="BuiltIn">
+<arg>${result}</arg>
+<arg>86399</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<status status="PASS" start="2026-10-12T14:14:59.328702" elapsed="0.001008"/>
+</kw>
+<kw name="Close Port" owner="SerialLibrary">
+<status status="PASS" start="2026-10-12T14:14:59.329710" elapsed="0.000000"/>
+</kw>
+<status status="PASS" start="2026-10-12T14:14:59.243637" elapsed="0.086073"/>
+</test>
+<status status="PASS" start="2026-10-12T14:14:58.535069" elapsed="0.795635"/>
 </suite>
 <statistics>
 <total>
-<stat pass="2" fail="0" skip="0">All Tests</stat>
+<stat pass="6" fail="0" skip="0">All Tests</stat>
 </total>
 <tag>
 </tag>
 <suite>
-<stat name="TimeParser" id="s1" pass="2" fail="0" skip="0">TimeParser</stat>
+<stat name="TimeParser" id="s1" pass="6" fail="0" skip="0">TimeParser</stat>
 </suite>
 </statistics>
 <errors>

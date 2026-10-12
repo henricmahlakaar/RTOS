@@ -13,10 +13,7 @@ def read_line():
     while True:
         line = ser.readline().decode(errors="ignore").strip()
 
-        if not line:
-            continue
-
-        if line == "80" or line == "-3":
+        if line in ["80", "-1", "-3", "86399"]:
             return line
 
 def close_port():

@@ -10,7 +10,16 @@
 /*
 6vk tehtävä
 
-Tavoiteltu pistemäärä: 1p
+Tavoiteltu pistemäärä: 2p
+Perustelu:
+- Robot Framework lähettää aikamerkkijonoja UARTiin.
+- Testataan oikea aikamerkkijono.
+- Testataan virheellinen sekuntiarvo.
+- Testataan väärä pituus.
+- Testataan virheellinen tuntiarvo.
+- Testataan virheellinen minuuttiarvo.
+- Testataan maksimi sallittu aika.
+
 Tekijät:
 Henric M. ja Jere K.
 */
@@ -165,7 +174,7 @@ static void handle_line(char *line)
 		printk("Time string received: %s\n", line);
 		printk("LEN=%d\n", strlen(line));
 		printk("DATA='%s'\n", line);
-		
+
 		int sec = time_parse(line);
 		printk("%d\n", sec);
 
