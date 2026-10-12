@@ -163,6 +163,9 @@ static void handle_line(char *line)
 	if ((line[0] >= '0' && line[0] <= '9') || line[0] == '-') {
 		// Aikamerkkijono -> parseri -> ajastin
 		printk("Time string received: %s\n", line);
+		printk("LEN=%d\n", strlen(line));
+		printk("DATA='%s'\n", line);
+		
 		int sec = time_parse(line);
 		printk("%d\n", sec);
 
@@ -322,23 +325,32 @@ void green_led_task(void *, void *, void *)
 
 int main(void)
 {
-	timing_init();
-	timing_start();
-	timing_t start_time = timing_counter_get();
+    printk("HELLO UART\n");
 
-	init_led();
+    timing_init();
+    timing_start();
+    timing_t start_time = timing_counter_get();
 
-	if (init_uart() != 0) {
-		printk("UART INIT FAILED\n");
-		return 1;
-	}
+    init_led();
 
-	timing_t end_time = timing_counter_get();
-	timing_stop();
-	uint64_t timing_ns = timing_cycles_to_ns(timing_cycles_get(&start_time, &end_time));
-	printk("Initialization time: %lld.%03lld ms\n", timing_ns / 1000000, timing_ns % 1000000 / 1000);
-	return 0;
+    printk("MAIN RUNNING\n");
+
+    if (init_uart() != 0) {
+        printk("UART INIT FAILED\n");
+        return 1;
+    }
+
+	k_sem_give(&red_sem);
+    timing_t end_time = timing_counter_get();
+    timing_stop();
+
+    uint64_t timing_ns =
+        timing_cycles_to_ns(
+            timing_cycles_get(&start_time, &end_time));
+
+    printk("Initialization time: %lld.%03lld ms\n",
+           timing_ns / 1000000,
+           timing_ns % 1000000 / 1000);
+
+    return 0;
 }
-
-
-

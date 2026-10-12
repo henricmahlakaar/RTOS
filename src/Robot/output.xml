@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<robot generator="Robot 7.5 (Python 3.12.4 on win32)" generated="2026-10-12T13:55:25.203490" rpa="false" schemaversion="5">
+<suite id="s1" name="TimeParser" source="C:\RTOS-Git\RTOS-vk5\RTOS\src\Robot\TimeParser.robot">
+<test id="s1-t1" name="Correct Time" line="5">
+<kw name="Open Port" owner="SerialLibrary">
+<arg>COM6</arg>
+<status status="PASS" start="2026-10-12T13:55:25.468966" elapsed="0.013943"/>
+</kw>
+<kw name="Send Text" owner="SerialLibrary">
+<arg>000120</arg>
+<status status="PASS" start="2026-10-12T13:55:25.482909" elapsed="0.000000"/>
+</kw>
+<kw name="Read Line" owner="SerialLibrary">
+<msg time="2026-10-12T13:55:25.557769" level="INFO">${result} = 80</msg>
+<var>${result}</var>
+<status status="PASS" start="2026-10-12T13:55:25.483909" elapsed="0.073860"/>
+</kw>
+<kw name="Should Be Equal" owner="BuiltIn">
+<arg>${result}</arg>
+<arg>80</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<status status="PASS" start="2026-10-12T13:55:25.558775" elapsed="0.000000"/>
+</kw>
+<kw name="Close Port" owner="SerialLibrary">
+<status status="PASS" start="2026-10-12T13:55:25.558775" elapsed="0.001002"/>
+</kw>
+<status status="PASS" start="2026-10-12T13:55:25.467956" elapsed="0.091821"/>
+</test>
+<test id="s1-t2" name="Invalid Seconds" line="12">
+<kw name="Open Port" owner="SerialLibrary">
+<arg>COM6</arg>
+<status status="PASS" start="2026-10-12T13:55:25.560779" elapsed="0.014062"/>
+</kw>
+<kw name="Send Text" owner="SerialLibrary">
+<arg>000060</arg>
+<status status="PASS" start="2026-10-12T13:55:25.575849" elapsed="0.000000"/>
+</kw>
+<kw name="Read Line" owner="SerialLibrary">
+<msg time="2026-10-12T13:55:25.645382" level="INFO">${result} = -3</msg>
+<var>${result}</var>
+<status status="PASS" start="2026-10-12T13:55:25.575849" elapsed="0.069533"/>
+</kw>
+<kw name="Should Be Equal" owner="BuiltIn">
+<arg>${result}</arg>
+<arg>-3</arg>
+<doc>Fails if the given objects are unequal.</doc>
+<status status="PASS" start="2026-10-12T13:55:25.645382" elapsed="0.001000"/>
+</kw>
+<kw name="Close Port" owner="SerialLibrary">
+<status status="PASS" start="2026-10-12T13:55:25.646382" elapsed="0.000000"/>
+</kw>
+<status status="PASS" start="2026-10-12T13:55:25.560779" elapsed="0.086604"/>
+</test>
+<status status="PASS" start="2026-10-12T13:55:25.204486" elapsed="0.442897"/>
+</suite>
+<statistics>
+<total>
+<stat pass="2" fail="0" skip="0">All Tests</stat>
+</total>
+<tag>
+</tag>
+<suite>
+<stat name="TimeParser" id="s1" pass="2" fail="0" skip="0">TimeParser</stat>
+</suite>
+</statistics>
+<errors>
+</errors>
+</robot>
