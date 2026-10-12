@@ -7,8 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Tässä 1p suoritus 5vk tehtävästä, lisätään ominaisuuksia mahdollisuuksien mukaan.
-// Tekijä: Henric M. ja Jere K.
+// 5vk tehtävä, 2p suoritus
+// Lisätty parserin yksikkötestit (8 kpl)
+// Tekijät: Henric M. ja Jere K.
 
 // Defines
 #define STACKSIZE 500
