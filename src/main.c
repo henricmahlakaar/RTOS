@@ -7,9 +7,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-// 5vk tehtävä, 2p suoritus
-// Lisätty parserin yksikkötestit (8 kpl)
-// Tekijät: Henric M. ja Jere K.
+/*
+6vk tehtävä
+
+Tavoiteltu pistemäärä: 1p
+Tekijät:
+Henric M. ja Jere K.
+*/
 
 // Defines
 #define STACKSIZE 500
